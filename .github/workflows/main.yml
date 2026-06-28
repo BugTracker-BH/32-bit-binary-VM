@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ═══════════════════════════════════════════════════════════
+# Mono-repo setup: qemu-ios iOS port project
+# Pulls all 6 source repos into one parent directory as subfolders.
+# ═══════════════════════════════════════════════════════════
+
+MONOREPO_NAME="qemu-ios-port"
+mkdir -p "$MONOREPO_NAME"
+cd "$MONOREPO_NAME"
+
+echo "==> Cloning utmapp/qemu (UTM's iOS-buildable QEMU fork)..."
+git clone --recurse-submodules https://github.com/utmapp/qemu.git utm-qemu
+
+echo "==> Cloning utmapp/UTM (app shell, build scripts, entitlements)..."
+git clone --recurse-submodules https://github.com/utmapp/UTM.git utm-app
+
+echo "==> Cloning devos50/qemu-ios (device models to graft)..."
+git clone https://github.com/devos50/qemu-ios.git devos50-qemu-ios
+(
+  cd devos50-qemu-ios
+  git checkout ipod_touch_2g
+  git branch ipod_touch_1g_ref origin/ipod_touch_1g || true
+)
+
+echo "==> Cloning NAND generator tool..."
+git clone https://github.com/devos50/qemu-ios-generate-nand.git
+
+echo "==> Cloning NOR generator tool..."
+git clone https://github.com/devos50/qemu-ios-generate-nor.git
+
+echo "==> Cloning TrollStore (signing/entitlement reference)..."
+git clone https://github.com/opa334/TrollStore.git
+
+cd ..
+
+echo ""
+echo "==> Done. Mono-repo structure:"
+find "$MONOREPO_NAME" -maxdepth 1 -mindepth 1 -type d | sort
