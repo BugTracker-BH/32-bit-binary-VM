@@ -10,12 +10,9 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v4
 
-      - name: Clone all 6 source repos into monorepo/
+      - name: Clone all 6 source repos at repo root
         run: |
           set -euo pipefail
-
-          mkdir -p monorepo
-          cd monorepo
 
           echo "==> utmapp/qemu (iOS-buildable QEMU fork, TCG-only)"
           git clone --recurse-submodules https://github.com/utmapp/qemu.git utm-qemu
@@ -40,14 +37,13 @@ jobs:
           echo "==> opa334/TrollStore (signing/entitlement reference)"
           git clone https://github.com/opa334/TrollStore.git
 
-          cd ..
-          echo "==> Monorepo structure:"
-          find monorepo -maxdepth 1 -mindepth 1 -type d | sort
+          echo "==> Repo root structure:"
+          find . -maxdepth 1 -mindepth 1 -type d ! -path './.git' ! -path './.github' | sort
 
-      - name: Commit monorepo back into this repo
+      - name: Commit repos back into this repo root
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add monorepo
-          git commit -m "Build monorepo: pull in all 6 source repos" || echo "Nothing to commit"
+          git add utm-qemu utm-app devos50-qemu-ios qemu-ios-generate-nand qemu-ios-generate-nor TrollStore
+          git commit -m "Add all 6 source repos at repo root" || echo "Nothing to commit"
           git push
